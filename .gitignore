@@ -1,1 +1,6 @@
 .DS_Store
+
+# ckpt太大无法上传
+ckpt/*.json
+ckpt/*.pdparams
+ckpt/*.txt
