@@ -1,0 +1,99 @@
+# 题目
+
+东北大学 计算机科学与工程学院 林新辉
+
+## 摘要（Done）
+
+情感分析在自然语言处理任务中扮演着重要角色，近年来，对文本的情感分析任务逐渐由简单的正面-负面-中立式的多分类问题转向更细粒度的多标签问题，要求分类器输出文本中包含的具体情感，给语言模型带来的挑战。基于预训练和微调策略的语言模型方兴未艾，是自然语言处理领域的主流方法，这种策略往往构造一个包含众多参数的模型，在通用的大语料库上完成自监督回归式训练，再在具体任务的具体数据集上进行微调，得到的微调模型用于推理。本文基于ernie3.0基座模型，在所给数据集上实现多标签情感分析，模型在验证集上的macro F1-Score得分为0.67598，在测试集上的macro-F1得分为0.72736，比赛排名为18（未去重）、9（去重），实验和比赛结果表明此预训练-微调范式在情感分析任务上的可行性和推理的较高准确性。
+
+关键词：情感分析，多标签分类，预训练模型
+
+## Abstract（Done）
+
+Sentiment analysis plays a crucial role in natural language processing tasks. In recent years, sentiment analysis tasks on text have evolved from simple multi-class problems, such as positive-negative-neutral classification, to more fine-grained multi-label problems, demanding classifiers to output specific emotions contained in the text. This shift presents challenges for language models. The prevalent approach in the field of natural language processing involves the use of pre-training and fine-tuning strategies. This strategy often entails constructing a model with numerous parameters, conducting self-supervised auto-regression training on a large general corpus, and subsequently fine-tuning it on specific datasets for particular tasks.The emergence of language models based on pre-training and fine-tuning strategies is becoming increasingly prominent. This approach involves constructing a model with numerous parameters and conducting self-supervised regression-style training on a vast general corpus. The model is then fine-tuned on specific datasets for particular tasks, and the resulting fine-tuned model is employed for inference.This paper, utilizing the Ernie 3.0 base model, implements multi-label sentiment analysis on a given dataset. The model achieves a macro F1-Score of 0.67598 on the validation set and a macro F1 score of 0.72736 on the test set. In the competition, the model ranks 18th (without deduplication) and 9th (with deduplication). Experimental and competition results demonstrate the feasibility of this pre-training-fine-tuning paradigm in sentiment analysis tasks, showcasing high accuracy in inference.
+
+keywords: sentiment analysis, multi-label classification, pre-trained model
+
+## 引言（Done）
+
+情感分析(Sentiment Analysis)又称倾向性分析，或意见挖掘，它是对带有情感色彩的主观性文本进行分析、处理、归纳和推理的过程。利用情感分析能力，可以针对带有主观描述的自然语言文本，自动判断该文本的情感正负倾向并给出相应的结果。在评论分析与决策、电商评论分类以及舆情监控中有非常广泛的应用。在情感分析中，粒度与准确度是影响情感分析效果的重要因素。目前大多数现有情感分析系统采用的正面、中性、负面的情感分类方式，其较难表达人类情感的复杂性，难以挖掘文本中潜在情感。本项目构建精细化微情感多分类模型，细化情感分析结果粒度同时优化微情感分类效果。
+
+## 算法描述（Done）
+
+【预训练-微调策略】
+
+在预训练阶段，模型被在大规模文本数据上进行训练，学习语言的一般性表示。在预训练完成后，模型在具体的下游任务训练集上进行微调，对本题来说，是文本的多标签分类任务。
+
+【基座模型】
+
+使用ernie3.0模型作为基座模型，受篇幅限制且此模型的原理不属于本文工作范畴，其内部细节从略。
+
+ernie3.0模型专注于融合语言表示与知识表示，以提高模型对语境的理解和推理能力，且原生在中文语料库上预训练，比赛过程中比较了ernie3.0模型和bert预训练模型在发布的数据集上的预测效果，在相同的超参数配置和训练方式设置下，ernie3.0略好于bert。
+
+【整体算法描述】
+
+- 算法1 微调阶段
+1. 输入：预训练模型，下游任务训练集（有标签）
+2. 输出：微调好的模型
+3. 数据清洗，对每条样本删除无效字符，删除预分词，生成输入文本的词向量，生成标签的独热编码
+4. 将训练集划分为训练集和验证集
+5. 将词向量输入预训练模型训练网络，每50步测试模型在验证集上的auc、F1-Score、Precision和Recall得分
+6. 保存在验证集上F1-Score最高的模型作为微调好的模型
+
+- 算法2 推理阶段
+1. 输入：微调好的模型，下游任务测试集（无标签）
+2. 输出：下游任务测试集的标签
+3. 保持数据集处理的所有超参数，对测试集进行词嵌入和独热编码
+4. 使用算法1生成的微调模型预测上一步生成的词向量对应的标签
+5. 对标签使用sigmoid函数激活，按照给定阈值进行二值化
+6. 按照二值化的结果生成对应原始标签
+7. 保存各条样本对应的原始标签纪委测试集的标签
+
+## 实验（Done）
+
+【数据集描述，数据集划分和数据预处理】
+
+在给定数据集上验证算法的可行性并评估算法性能。给定的测试数据集包含26000条数据，每条数据以【id，text，label】形式给出，随机地将30%的数据用作验证集，剩余的作为训练集。每次读取一条样本（csv文件中的一行），对text字段的值先去除头尾空字符，再去除数据集预先分词产生的空格，最后送入分词器，生成词向量，对label进行独热编码。按照上述流程使用划分后的测试集对预训练模型进行微调，并通过验证集选出最优模型。使用保存的最优模型在测试集上进行推理，测试集包含6153条数据，以【id，text】形式给出，模型输出text字段对应的label的独热编码形式，并根据给定的划分阈值二值化为可读形式的label。
+
+【超参数设置】
+
+超参数设置如下表，这是经过实验选择的最优阈值，不同阈值参数设置对应不同实验结果受篇幅限制从略：
+
+|超参数|值|
+|---|---|
+|分词器最大序列长度|100|
+|测试集批量大小|16|
+|验证集批量大小|16|
+|初始学习率|2e-5|
+|学习率衰减率/轮次|0.5|
+|优化器|AdamW|
+|损失函数|BCEWithLogitsLoss|
+|微调轮次|4|
+|推理时的二值化阈值|0.38|
+
+【实验结果和分析】
+
+模型训练在本地环境和百度paddlepaddle上进行，本地环境和云上环境的硬件配置分别是（关注GPU）RTX3060 12GB（本地环境），V100 16GB、A100 40GB和V100 32GB*4（云上环境）。
+
+受时间限制，得益于成熟的transformer框架，本文比较了不同基座模型在本下游任务上的性能，但未能记录实验结果，同事未能实现其他方法（如基于CNN、RNN的方法）在本问题上的模型实现和性能测试，这里只汇报ernie3.0模型在给定任务数据集（验证集）上的实验结果：
+
+|指标|得分|
+|---|---|
+|auc|0.91337|
+|F1-Score|0.67598|
+|precision|0.64911|
+|recall|0.70517|
+
+由于始终未知测试集标签，这里只能汇报F1-Score分数，为0.72736。
+
+尽管本文无法给出每种超参数组合对对应的模型性能，但可以给出大致的超参数设置对模型预测性能的影响趋势。对于批量大小，设置更小的批量（如16相比于128）能取得更好的测试分数，文献调研表明更小的批量大小是否更有利于模型的泛化存在争议，但实验结果确实支持此结论，并且更小的批量大小对训练时的硬件要求更低；对于学习率，设置逐渐衰减的学习率（如按照0.5比例衰减）相比与设置恒定大小的学习率能取得更好的测试分数，这一优化可以带来收益时显然的，逐渐减小的学习率有利于优化向真正极小点收敛；对于推理结果的二值化参数，取在0.3至0.4之间为宜。
+
+## 结语（Done）
+
+本文基于预训练模型erine3.0，构造了文本多标签情感分类模型，实现了区别于传统文本情感多类别单标签问题的细粒度多标签情感分类，在提供的数据集上的自测auc、macro F1 Score、precision和recall分别为0.91337、0.67598、0.64911和0.70517，取得了0.72736的macro F1-Score的评测机成绩。
+
+通过实验，本文提出的方法存在以下问题：
+
+- 其一，模型参数量与数据集规模不匹配的问题，实验表明，参数量较大的预训练模型在所给规模的下游任务数据集上容易过拟合，表现为训练集和验证集损失未收敛而测试集得分开始降低。受时间和算力限制我没能验证诸如TextCNN模型或基于RNN的模型甚至于更简单的基于决策树的模型在提供的小规模数据集上的预测精度，但猜想上述模型或许能输出不弱于基于预训练模型的测试精度。这一问题可以通过模型集成解决。
+- 其二，下游任务偏移问题，如上，基座模型的预训练任务和情感分类这一下游任务存在较大差异，导致模型预测精度不高，为了解决这一问题，直观的想法是在预训练阶段加入文本分类任务，但实现上恐怕没有能满足预训练模型的自监督任务语料库，另一方面这样得到的基座模型难以迁移到其他任务，与预训练策略的出发点相悖。于是合理的调整方案应当是使用冻结基座模型的若干层，只微调基座模型的特定层的策略以在本特定下游任务上取得更好的结果。
+- 其三，模型训练和推理的效率问题，实验显示模型的训练/微调和推理都要花费较多时间，模型训练/微调时可以通过引入并行加速硬件提高效率，推理时则可以通过通过模型量化实现性能优化。
