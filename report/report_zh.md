@@ -1,24 +1,16 @@
-# 题目
+# 一种基于Ernie3.0预训练模型的多标签情感分类方法
 
-东北大学 计算机科学与工程学院 林新辉
-
-## 摘要（Done）
+## 摘要
 
 情感分析在自然语言处理任务中扮演着重要角色，近年来，对文本的情感分析任务逐渐由简单的正面-负面-中立式的多分类问题转向更细粒度的多标签问题，要求分类器输出文本中包含的具体情感，给语言模型带来的挑战。基于预训练和微调策略的语言模型方兴未艾，是自然语言处理领域的主流方法，这种策略往往构造一个包含众多参数的模型，在通用的大语料库上完成自监督回归式训练，再在具体任务的具体数据集上进行微调，得到的微调模型用于推理。本文基于ernie3.0基座模型，在所给数据集上实现多标签情感分析，模型在验证集上的macro F1-Score得分为0.67598，在测试集上的macro-F1得分为0.72736，比赛排名为18（未去重）、9（去重），实验和比赛结果表明此预训练-微调范式在情感分析任务上的可行性和推理的较高准确性。
 
 关键词：情感分析，多标签分类，预训练模型
 
-## Abstract（Done）
-
-Sentiment analysis plays a crucial role in natural language processing tasks. In recent years, sentiment analysis tasks on text have evolved from simple multi-class problems, such as positive-negative-neutral classification, to more fine-grained multi-label problems, demanding classifiers to output specific emotions contained in the text. This shift presents challenges for language models. The prevalent approach in the field of natural language processing involves the use of pre-training and fine-tuning strategies. This strategy often entails constructing a model with numerous parameters, conducting self-supervised auto-regression training on a large general corpus, and subsequently fine-tuning it on specific datasets for particular tasks.The emergence of language models based on pre-training and fine-tuning strategies is becoming increasingly prominent. This approach involves constructing a model with numerous parameters and conducting self-supervised regression-style training on a vast general corpus. The model is then fine-tuned on specific datasets for particular tasks, and the resulting fine-tuned model is employed for inference.This paper, utilizing the Ernie 3.0 base model, implements multi-label sentiment analysis on a given dataset. The model achieves a macro F1-Score of 0.67598 on the validation set and a macro F1 score of 0.72736 on the test set. In the competition, the model ranks 18th (without deduplication) and 9th (with deduplication). Experimental and competition results demonstrate the feasibility of this pre-training-fine-tuning paradigm in sentiment analysis tasks, showcasing high accuracy in inference.
-
-keywords: sentiment analysis, multi-label classification, pre-trained model
-
-## 引言（Done）
+## 引言
 
 情感分析(Sentiment Analysis)又称倾向性分析，或意见挖掘，它是对带有情感色彩的主观性文本进行分析、处理、归纳和推理的过程。利用情感分析能力，可以针对带有主观描述的自然语言文本，自动判断该文本的情感正负倾向并给出相应的结果。在评论分析与决策、电商评论分类以及舆情监控中有非常广泛的应用。在情感分析中，粒度与准确度是影响情感分析效果的重要因素。目前大多数现有情感分析系统采用的正面、中性、负面的情感分类方式，其较难表达人类情感的复杂性，难以挖掘文本中潜在情感。本项目构建精细化微情感多分类模型，细化情感分析结果粒度同时优化微情感分类效果。
 
-## 算法描述（Done）
+## 算法描述
 
 【预训练-微调策略】
 
@@ -49,7 +41,7 @@ ernie3.0模型专注于融合语言表示与知识表示，以提高模型对语
 6. 按照二值化的结果生成对应原始标签
 7. 保存各条样本对应的原始标签纪委测试集的标签
 
-## 实验（Done）
+## 实验
 
 【数据集描述，数据集划分和数据预处理】
 
@@ -88,7 +80,7 @@ ernie3.0模型专注于融合语言表示与知识表示，以提高模型对语
 
 尽管本文无法给出每种超参数组合对对应的模型性能，但可以给出大致的超参数设置对模型预测性能的影响趋势。对于批量大小，设置更小的批量（如16相比于128）能取得更好的测试分数，文献调研表明更小的批量大小是否更有利于模型的泛化存在争议，但实验结果确实支持此结论，并且更小的批量大小对训练时的硬件要求更低；对于学习率，设置逐渐衰减的学习率（如按照0.5比例衰减）相比与设置恒定大小的学习率能取得更好的测试分数，这一优化可以带来收益时显然的，逐渐减小的学习率有利于优化向真正极小点收敛；对于推理结果的二值化参数，取在0.3至0.4之间为宜。
 
-## 结语（Done）
+## 结语
 
 本文基于预训练模型erine3.0，构造了文本多标签情感分类模型，实现了区别于传统文本情感多类别单标签问题的细粒度多标签情感分类，在提供的数据集上的自测auc、macro F1 Score、precision和recall分别为0.91337、0.67598、0.64911和0.70517，取得了0.72736的macro F1-Score的评测机成绩。
 
