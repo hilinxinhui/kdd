@@ -4,3 +4,5 @@
 ckpt/*.json
 ckpt/*.pdparams
 ckpt/*.txt
+
+poster/poster.zip
